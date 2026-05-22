@@ -1,0 +1,13 @@
+#Secret/Hidden Data
+.env
+
+#Virtual Environments
+test_env/
+
+#Python Cache
+__pycache__/
+*.pyc
+
+#System Files
+.DS_Store
+Thumbs.db
