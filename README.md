@@ -1,6 +1,6 @@
-# NASA Asteroid Radar ☄️
+# NASA NeoWS API Asteroid Detection Radar ☄️
 
-A Python script that connects to the NASA NeoWs (Near Earth Object Web Service) API to track asteroids passing near Earth.
+A Python script that connects to the NASA NeoWs (Near Earth Object Web Service) API to track asteroids passing near Earth and other celestial bodies.
 
 ## Setup
 1. Clone the repo.
