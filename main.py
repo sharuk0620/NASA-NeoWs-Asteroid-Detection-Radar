@@ -7,7 +7,7 @@ import os
 #Reads the contents of .env
 from dotenv import load_dotenv
 
-import utils
+import utils, radarInterface, module
 
 
 #Loads hidden key into System Environment Variables
@@ -22,7 +22,7 @@ url = "https://api.nasa.gov/neo/rest/v1/feed"
 #Dictionary containing the search parameters for the API url (start_date, end_date, and api_key)
 feedQuery_params = {
     "start_date": "2026-05-22",
-    "end_date": "2026-05-27",
+    "end_date": "2026-05-23",
     "api_key": api_key_nasa
 }
 
@@ -32,13 +32,18 @@ api_response = requests.get(url, params=feedQuery_params)
 #Converts the raw data to a parsable and extractable object 
 asteroid_data = api_response.json()
 
+#print("Asteroids between given dates: " + feedQuery_params["start_date"] + " to " + feedQuery_params["end_date"] + " (YYYY-MM-DD)")
+#print("------------------------------")
+#utils.listAsteroidNameID(asteroid_data)
 
-#utils.printName_NeoID(asteroid_data)
+##print(utils.prettyData(asteroid_data, 4))
 
-#print(utils.prettyData(asteroid_data, 4))
+radarInterface.askUserMainChoice()
+
+radarInterface.askScanChoices()
 
 
-
+"""
 #NEO Search UP
 
 url = "https://api.nasa.gov/neo/rest/v1/neo/3837653"
@@ -50,11 +55,11 @@ lookQuery_params = {
 
 asteroidLookUp = (requests.get(url, params=lookQuery_params)).json()
 
-cleanData = asteroidLookUp["close"]
+#cleanData = asteroidLookUp["close"]
 
 print(utils.prettyData(asteroidLookUp, 4))
 
-
+"""
 
 
 
