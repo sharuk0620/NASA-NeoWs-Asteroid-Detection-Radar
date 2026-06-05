@@ -8,6 +8,8 @@ import os
 #Reads the contents of .env
 from dotenv import load_dotenv
 
+from datetime import date
+
 #Imports the json request module to provide the json.dumps function to print the API data in a clean format
 import json
 
@@ -42,7 +44,7 @@ def askScanChoices():
           "-----------------------------------------------------------------")
     print("[a] SCAN TODAY")
     print("[b] SCAN TOMORROW")
-    print("[c] DISPLAY TOP 10 HAZARDS IN THE NEXT 7 DAYS")
+    print("[c] DISPLAY TOP 10 HAZARDS IN THE NEXT 7 DAYS\n\n")
 
     while True:
 
@@ -53,6 +55,23 @@ def askScanChoices():
             break
         else:
             print("\nInvalid Choice! Please choose an option listed!\n")
+
+#Agenda: Evaluate close approaching 
+def scanToday(apiData):
+    #Attain Current Date 
+
+    currentDate = date.today()
+
+    currentYear = currentDate.year
+    currentMonth = currentDate.month
+    currentDay = currentDate.day
+
+
+
+
+
+
+
 
 
 

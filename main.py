@@ -7,7 +7,7 @@ import os
 #Reads the contents of .env
 from dotenv import load_dotenv
 
-import utils, radarInterface, module
+import utils, radarInterface
 
 
 #Loads hidden key into System Environment Variables
@@ -22,7 +22,7 @@ url = "https://api.nasa.gov/neo/rest/v1/feed"
 #Dictionary containing the search parameters for the API url (start_date, end_date, and api_key)
 feedQuery_params = {
     "start_date": "2026-05-22",
-    "end_date": "2026-05-23",
+    "end_date": "2026-05-22",
     "api_key": api_key_nasa
 }
 
@@ -36,11 +36,11 @@ asteroid_data = api_response.json()
 #print("------------------------------")
 #utils.listAsteroidNameID(asteroid_data)
 
-##print(utils.prettyData(asteroid_data, 4))
+print(utils.prettyData(asteroid_data, 4))
 
-radarInterface.askUserMainChoice()
+#radarInterface.askUserMainChoice()
 
-radarInterface.askScanChoices()
+#radarInterface.askScanChoices()
 
 
 """
