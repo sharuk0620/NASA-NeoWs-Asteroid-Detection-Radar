@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 import utils, radarInterface
 
+from modules import NearEarthObject
+
 
 #Loads hidden key into System Environment Variables
 load_dotenv()
@@ -21,8 +23,8 @@ url = "https://api.nasa.gov/neo/rest/v1/feed"
 
 #Dictionary containing the search parameters for the API url (start_date, end_date, and api_key)
 feedQuery_params = {
-    "start_date": "2026-05-22",
-    "end_date": "2026-05-22",
+    "start_date": "2026-05-23",
+    "end_date": "2026-05-23",
     "api_key": api_key_nasa
 }
 
@@ -36,30 +38,34 @@ asteroid_data = api_response.json()
 #print("------------------------------")
 #utils.listAsteroidNameID(asteroid_data)
 
-print(utils.prettyData(asteroid_data, 4))
+#print(utils.prettyData(asteroid_data, 4))
 
 #radarInterface.askUserMainChoice()
 
 #radarInterface.askScanChoices()
 
 
-"""
-#NEO Search UP
+#Asteroid Hazard Rating Tests
+asteroid_dict_test = asteroid_data["near_earth_objects"]["2026-05-23"][3]
 
-url = "https://api.nasa.gov/neo/rest/v1/neo/3837653"
+test_obj = NearEarthObject()
 
-lookQuery_params = {
-    #"asteroid_id": "3837653",
-    "api_key": api_key_nasa
-}
+test_obj.fillObj(asteroid_dict_test)
 
-asteroidLookUp = (requests.get(url, params=lookQuery_params)).json()
+print(vars(test_obj))
 
-#cleanData = asteroidLookUp["close"]
+test_obj.totalHazardAnalysis()
 
-print(utils.prettyData(asteroidLookUp, 4))
+print("----------------")
 
-"""
+print(test_obj.get_NEO_classification())
+
+
+
+
+
+
+
 
 
 
