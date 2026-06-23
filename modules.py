@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 #NearEarthObject is a class that represents NEO and key data found and recieved NASA's NEOWs API calls.
 class NearEarthObject:
 
@@ -11,8 +14,9 @@ class NearEarthObject:
         estSizeMetersMin = 0.0
         estSizeMetersMax = 0.0
         estApproachDistAU = 0.0
-        closeApproachDate = ""
-        closeApproachTime = ""
+        rawApproachTime = ""
+        localApproachDate = ""
+        localApproachTime = ""
         relativeVelKmSeconds = 0.0
         hazardeousRating = 0.0
         sentryObjectFlag = False
@@ -40,18 +44,48 @@ class NearEarthObject:
         #The near approach distance of the asteroid in Astronomical Units (AU)
         self.estApproachDistAU = float(approachData["miss_distance"]["astronomical"])
 
-        #Creates an array containing the calendar date and time of close asteroid approach
-        closeApproachInfo = approachData["close_approach_date_full"].split()
-
-        #Assigns date and time appropriately
-        self.closeApproachDate = closeApproachInfo[0]
-        self.closeApproachTime = closeApproachInfo[1]
+        #Assigns the epoch date in milliseconds, which later converts to local time
+        self.rawApproachTime = approachData["epoch_date_close_approach"]
 
         #The relative velocity in kilometers per second (km/s) of the asteroid during close approach
         self.relativeVelKmSeconds = float(approachData["relative_velocity"]["kilometers_per_second"])
 
         #A flag on whether or not asteroid is tracked by NASA's CNEOS for potential danger
         self.sentryObjectFlag = neoData.get("is_sentry_object", False)
+
+        #Evaluates and updates hazardousRating score
+        self.totalHazardAnalysis()
+
+        #Evaluates and updates the localApproachDate and localApproachTime for the NEO based off of the users timezone
+        self.attainLocalApproachTime()
+
+        
+
+
+    def attainLocalApproachTime(self):
+        #Attains the approach date and time of the NEO in their local timezone
+        approach_date_full = str(datetime.fromtimestamp(self.rawApproachTime / 1000))[:16]
+
+        #An array containing the calendar date and military-time clock approach time
+        dateParts = approach_date_full.split()
+
+        #Creates a datetime object to contain the military time of the NEO
+        localTime = datetime.strptime(dateParts[1], "%H:%M")
+
+        #Assigns the local approach date to the first dateParts element (Local Calendar Date)
+        self.localApproachDate = dateParts[0]
+
+        #Converts the datetime object into a string containing the standard approach time of the NEO
+        self.localApproachTime = localTime.strftime("%I:%M %p")
+
+        
+
+
+
+
+
+    def __str__(self):
+        return f"NEO Target: {self.name} \nID: {self.id} \nAbsolute Magnitude: {self.absMag} \nEstimated Minimum Size: {self.estSizeMetersMin} meters \nEstimated Maximum Size: {self.estSizeMetersMax} meters \nApproach Distance: {self.estApproachDistAU} Astronomical Units \n Local Approach Date: {self.localApproachDate} \n Local Approach Time: {self.localApproachTime} \nRelative Velocity Upon Approach: {self.relativeVelKmSeconds} km/s \nHazard Score: {self.hazardousRating}/1.00 \nHazard Rating: {self.get_NEO_classification()} \nCurrently Tracked by NASA CNEOS Facility: {self.sentryObjectFlag} \n------------------------------------------"
 
 
     #Analyzes and determines the hazard score of a NEO using custom, developer-made criteria.
@@ -65,6 +99,11 @@ class NearEarthObject:
 
         #Assigns the hazardousRaating property of a given NEO with the 60/30/10 formula
         self.hazardousRating = round((0.6 * distScore) + (0.3 * sizeScore) + (0.1 * speedScore), 2)
+
+        #If the NEO is a sentry object, add 0.25 to the hazardousRating and ensure exceeding over 1.00
+        if(self.sentryObjectFlag == True):
+            self.hazardousRating = min(1.00, self.hazardousRating + 0.25)
+
         
  
     #Analyzes and returns the hazard score of NEO's close approach distance
@@ -74,12 +113,12 @@ class NearEarthObject:
         dist = self.estApproachDistAU
 
         #Returns a corresponding score (0.0 - 1.0) depending on the approach distance of the NEO
-        if(dist <= 0.05):
-            return 1.0 #Maximum Hazard: Extremely close, marked as a "PHA"
-        elif(dist <= 0.15):
-            return 0.5 #Moderate Hazard: Moderately close
-        elif(dist <= 0.30):
-            return 0.1 #Low Hazard: Within 0.3 AU NEO neighborhood
+        if(dist <= 0.0026):
+            return 1.0 #Maximum Hazard: Closer than the moon is!
+        elif(dist <= 0.015):
+            return 0.5 #Moderate Hazard: Very close to earth, far within PHA boundaries
+        elif(dist <= 0.05):
+            return 0.2 #Low Hazard: Offically marked as a "PHA"
         else:
             return 0 #No Hazard: Too far out to consider a NEO
         
@@ -90,11 +129,11 @@ class NearEarthObject:
         size = self.estSizeMetersMax
 
         #Returns a corresponding score (0.0 - 1.0) depending on the estimated max size of the NEO
-        if(size >= 1000.0):
+        if(size >= 140):
             return 1.0 #Maximum Hazard: Massive global threat!
-        elif(size >= 300.0):
+        elif(size >= 70):
             return 0.5 #Moderate Hazard: Threat to cities/regions
-        elif(size >= 140.0):
+        elif(size >= 20):
             return 0.2 #Low Hazard: Major damage possible, marked as a "PHA"
         else:
             return 0 #No Hazard: Will burn up in earth's atmosphere if in contact
@@ -117,13 +156,13 @@ class NearEarthObject:
     
     #Returns a classification/label for a given NEO object based on it's hazard rating property
     def get_NEO_classification(self):
-        if(self.hazardousRating >= 0.95):
+        if(self.hazardousRating >= 0.90):
             return "CRITICAL 🔴" #Extinction level threat
         elif(self.hazardousRating >= 0.80):
             return "SEVERE 🟠" #Major threat to humanity and life
         elif(self.hazardousRating >= 0.60):
             return "ELEVATED 🟡" #Potential to do massive damage to planet
-        elif(self.hazardousRating >= 0.40):
+        elif(self.hazardousRating >= 0.30):
             return "MODERATE 🟢" #Potential to level cities, countries, or whole regions
         else:
             return "LOW 🔵" #NEOs that will more than likely pose no threat to the planet
@@ -131,6 +170,13 @@ class NearEarthObject:
         #Prints out a special message whether the NEO is tracked by NASA's Center of Near Earth Object Studies
         if(self.sentryObjectFlag == True):
             print("‼️NEO IS ACTIVELY MONITORED BY NASA'S CNEOS‼️")
+
+
+class NEOStorage:
+    def __init__(self):
+        self.neoCollection = []
+
+    
 
 
 

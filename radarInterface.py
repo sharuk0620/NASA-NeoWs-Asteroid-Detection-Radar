@@ -8,10 +8,22 @@ import os
 #Reads the contents of .env
 from dotenv import load_dotenv
 
-from datetime import date
+from datetime import date, timedelta
 
 #Imports the json request module to provide the json.dumps function to print the API data in a clean format
 import json
+
+#Imports modules
+from modules import NearEarthObject, NEOStorage
+
+
+#Global Constants:
+currentDate = str(date.today()) #Stores the current date in a YYYY-MM-DD, string format
+
+testList = NEOStorage()
+
+
+
 
 
 #Asks the user to select an option upon initializition of the radar program
@@ -56,25 +68,85 @@ def askScanChoices():
         else:
             print("\nInvalid Choice! Please choose an option listed!\n")
 
+
+def initializeNEOList():
+    if(len(testList.neoCollection) != 0):
+        testList.neoCollection = []
+    for i in range(50):
+        testList.neoCollection.append(NearEarthObject())
+    #print(len(testList.neoCollection))
+
+def evaluateHazRatings(hazScore, scoreList):
+    if(hazScore >= 0.90):
+        scoreList["critical"] += 1
+    elif(hazScore >= 0.80):
+        scoreList["severe"] += 1
+    elif(hazScore >= 0.60):
+        scoreList["elevated"] += 1
+    elif(hazScore >= 0.30):
+        scoreList["moderate"] += 1
+    else:
+        scoreList["low"] += 1
+
+
 #Agenda: Evaluate close approaching 
-def scanToday(apiData):
+def scanNEOs(nearEarthData, choice):
     #Attain Current Date 
 
-    currentDate = date.today()
+    initializeNEOList()
 
-    currentYear = currentDate.year
-    currentMonth = currentDate.month
-    currentDay = currentDate.day
+    threatCounts = {
+        "critical": 0,
+        "severe": 0,
+        "elevated": 0,
+        "moderate": 0,
+        "low": 0
+    }
+
+    index = 0
+
+    #Today and Tomorrow Scans
+    if(choice != 3):
+
+        if(choice == 1):
+            scanDate = currentDate
+        else:
+            scanDate = date.today() + timedelta(days=1)
+        
+       
+
+
+        for asteroid in nearEarthData["2029-04-13"]:
+            curNEO = testList.neoCollection[index]
+            curNEO.fillObj(asteroid)
+            print(curNEO)
+            curHazScore = curNEO.hazardousRating
+
+            evaluateHazRatings(curHazScore, threatCounts)
+            index += 1
+    else:
+        dateList = nearEarthData.values()
+
+        threatList = [neo for date in dateList for neo in date]
+
+        for neo_data in threatList:
+            curNEO = testList.neoCollection[index]
+            curNEO.fillObj(neo_data)
+            curHazScore = curNEO.hazardousRating
+
+            evaluateHazRatings(curHazScore, threatCounts)
+            index += 1
+                
+    print("SCAN COMPLETE! RESULTS:")
+    print("-----------------------")
+    print(f"CRITICAL THREATS: {threatCounts["critical"]}")
+    print(f"SEVERE THREATS: {threatCounts["severe"]}")
+    print(f"ELEVATED THREATS: {threatCounts["elevated"]}")
+    print(f"MODERATE THREATS: {threatCounts["moderate"]}")
+    print(f"LOW THREATS: {threatCounts["low"]}")
 
 
 
 
 
-
-
-
-
-
-
-
-
+        
