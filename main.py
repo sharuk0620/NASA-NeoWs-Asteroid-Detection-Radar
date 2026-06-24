@@ -17,26 +17,26 @@ from datetime import date, timedelta
 load_dotenv()
 
 #Assigns api_key to hidden NASA API key
-api_key_nasa = os.getenv("NASA_API_KEY")
+#api_key_nasa = os.getenv("NASA_API_KEY")
 
 #Url for NeoWs NASA API without search query parameters
-url = "https://api.nasa.gov/neo/rest/v1/feed"
+#url = "https://api.nasa.gov/neo/rest/v1/feed"
 
 #gets the current date in a YYYY-MM-DD format
-todayDate = str(date.today())
+#todayDate = str(date.today())
 
 #Dictionary containing the search parameters for the API url (start_date, end_date, and api_key)
-feedQuery_params = {
-    "start_date": "2029-04-13", #todayDate,
-    "end_date": "2029-04-13", #date.today() + timedelta(days=7),
-    "api_key": api_key_nasa
-}
+#feedQuery_params = {
+    #"start_date": "2029-04-13", #todayDate,
+    #"end_date": "2029-04-13", #date.today() + timedelta(days=7),
+    #"api_key": api_key_nasa
+#}
 
 #Creates a response module object containing the raw data of the api call with the search params
-api_response = requests.get(url, params=feedQuery_params)
+#api_response = requests.get(url, params=feedQuery_params)
 
 #Converts the raw data to a parsable and extractable object 
-asteroid_data = api_response.json()
+#asteroid_data = api_response.json()
 
 #print("Asteroids between given dates: " + feedQuery_params["start_date"] + " to " + feedQuery_params["end_date"] + " (YYYY-MM-DD)")
 #print("------------------------------")
@@ -66,7 +66,10 @@ asteroid_data = api_response.json()
 
 
 
-radarInterface.scanNEOs(asteroid_data["near_earth_objects"], 1)
+#radarInterface.scanNEOs(asteroid_data["near_earth_objects"], 1)
+
+
+radarInterface.obtainAPIData()
 
 
 

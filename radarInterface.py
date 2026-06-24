@@ -18,7 +18,11 @@ from modules import NearEarthObject, NEOStorage
 
 
 #Global Constants:
-currentDate = str(date.today()) #Stores the current date in a YYYY-MM-DD, string format
+currentDate = date.today() #Stores the current date in a YYYY-MM-DD date object
+
+first_NEO_DATA_CALL = NEOStorage()
+
+second_NEO_DATA_CALL = NEOStorage()
 
 testList = NEOStorage()
 
@@ -44,6 +48,56 @@ def askUserMainChoice():
             break
         else:
             print("\nInvalid Choice! Please choose an option listed!\n")
+
+def obtainAPIData():
+
+    #Assigns api_key to hidden NASA API key
+    api_key_nasa = os.getenv("NASA_API_KEY")
+
+    #Url for NeoWs NASA API without search query parameters
+    url = "https://api.nasa.gov/neo/rest/v1/feed"
+
+    #1 API CALL 
+
+    #Dictionary containing the search parameters for the API url (start_date, end_date, and api_key)
+    feedQuery_params = {
+        "start_date": currentDate - timedelta(days=1),
+        "end_date": currentDate + timedelta(days=2),
+        "api_key": api_key_nasa
+    }
+    
+    #Creates a response module object containing the raw data of the api call with the search params
+    api_response = requests.get(url, params=feedQuery_params)
+
+    #Converts the raw data to a parsable and extractable object 
+    asteroid_data = api_response.json()["near_earth_objects"]
+
+    ### LOGIC HERE TO PUT INTO FIRST DATA CALL LIST
+
+    #2ND API CALL
+
+    feedQuery_params["start_date"] = currentDate + timedelta(days=3)
+    feedQuery_params["end_date"] = currentDate + timedelta(days=7)
+
+    #Creates a response module object containing the raw data of the api call with the search params
+    api_response = requests.get(url, params=feedQuery_params)
+
+    #Converts the raw data to a parsable and extractable object 
+    asteroid_data = api_response.json()["near_earth_objects"]
+
+    ### LOGIC HERE TO PUT INTO SECOND DATA CALL LIST 
+
+
+    #MERGE CALL LISTS TOGETHER 
+    
+
+
+
+
+
+
+
+
 
 
 #SCANNING OPTION METHODS/FUNCTIONS
@@ -83,15 +137,18 @@ def evaluateHazRatings(hazScore, scoreList):
         scoreList["severe"] += 1
     elif(hazScore >= 0.60):
         scoreList["elevated"] += 1
-    elif(hazScore >= 0.30):
+    elif(hazScore >= 0.40):
         scoreList["moderate"] += 1
-    else:
+    elif(hazScore >= 0.20):
         scoreList["low"] += 1
+    else:
+        scoreList["safe"] += 1
 
 
 #Agenda: Evaluate close approaching 
 def scanNEOs(nearEarthData, choice):
-    #Attain Current Date 
+    #Attain Current Date
+
 
     initializeNEOList()
 
@@ -100,7 +157,8 @@ def scanNEOs(nearEarthData, choice):
         "severe": 0,
         "elevated": 0,
         "moderate": 0,
-        "low": 0
+        "low": 0,
+        "safe": 0
     }
 
     index = 0
@@ -112,10 +170,8 @@ def scanNEOs(nearEarthData, choice):
             scanDate = currentDate
         else:
             scanDate = date.today() + timedelta(days=1)
+    
         
-       
-
-
         for asteroid in nearEarthData["2029-04-13"]:
             curNEO = testList.neoCollection[index]
             curNEO.fillObj(asteroid)
@@ -144,6 +200,7 @@ def scanNEOs(nearEarthData, choice):
     print(f"ELEVATED THREATS: {threatCounts["elevated"]}")
     print(f"MODERATE THREATS: {threatCounts["moderate"]}")
     print(f"LOW THREATS: {threatCounts["low"]}")
+    print(f"SAFE NEOs : {threatCounts["safe"]}")
 
 
 

@@ -78,15 +78,8 @@ class NearEarthObject:
         #Converts the datetime object into a string containing the standard approach time of the NEO
         self.localApproachTime = localTime.strftime("%I:%M %p")
 
-        
-
-
-
-
-
     def __str__(self):
-        return f"NEO Target: {self.name} \nID: {self.id} \nAbsolute Magnitude: {self.absMag} \nEstimated Minimum Size: {self.estSizeMetersMin} meters \nEstimated Maximum Size: {self.estSizeMetersMax} meters \nApproach Distance: {self.estApproachDistAU} Astronomical Units \n Local Approach Date: {self.localApproachDate} \n Local Approach Time: {self.localApproachTime} \nRelative Velocity Upon Approach: {self.relativeVelKmSeconds} km/s \nHazard Score: {self.hazardousRating}/1.00 \nHazard Rating: {self.get_NEO_classification()} \nCurrently Tracked by NASA CNEOS Facility: {self.sentryObjectFlag} \n------------------------------------------"
-
+        return f"NEO Target: {self.name} \nID: {self.id} \nAbsolute Magnitude: {self.absMag} \nEstimated Minimum Size: {self.estSizeMetersMin} meters \nEstimated Maximum Size: {self.estSizeMetersMax} meters \nApproach Distance: {self.estApproachDistAU} Astronomical Units \nLocal Approach Date: {self.localApproachDate} \nLocal Approach Time: {self.localApproachTime} \nRelative Velocity Upon Approach: {self.relativeVelKmSeconds} km/s \nHazard Score: {self.hazardousRating}/1.00 \nHazard Rating: {self.get_NEO_classification()} \nCurrently Tracked by NASA CNEOS Facility: {self.sentryObjectFlag} \n------------------------------------------\n"
 
     #Analyzes and determines the hazard score of a NEO using custom, developer-made criteria.
     #Criteria: Close Appr Dist, Size, and Speed follow a 60/30/10 hazard criteria
@@ -105,7 +98,6 @@ class NearEarthObject:
             self.hazardousRating = min(1.00, self.hazardousRating + 0.25)
 
         
- 
     #Analyzes and returns the hazard score of NEO's close approach distance
     def closeDistHazardAnalysis(self):
 
@@ -139,6 +131,7 @@ class NearEarthObject:
             return 0 #No Hazard: Will burn up in earth's atmosphere if in contact
 
     #Analyzes and returns the hazard score of NEO's relative speed in kilometers per second
+
     def speedHazardAnalysis(self):
 
         #Temporary variable to store the relative velocity of a NEO on a given approach date
@@ -162,14 +155,14 @@ class NearEarthObject:
             return "SEVERE 🟠" #Major threat to humanity and life
         elif(self.hazardousRating >= 0.60):
             return "ELEVATED 🟡" #Potential to do massive damage to planet
-        elif(self.hazardousRating >= 0.30):
+        elif(self.hazardousRating >= 0.40):
             return "MODERATE 🟢" #Potential to level cities, countries, or whole regions
+        elif(self.hazardousRating >= 0.20):
+            return "LOW 🔵" #Potential to do some damage, but unlikely
         else:
-            return "LOW 🔵" #NEOs that will more than likely pose no threat to the planet
+            return "SAFE ⚪" #NEOs that are highly unlikely to come in conflict with Earth
         
-        #Prints out a special message whether the NEO is tracked by NASA's Center of Near Earth Object Studies
-        if(self.sentryObjectFlag == True):
-            print("‼️NEO IS ACTIVELY MONITORED BY NASA'S CNEOS‼️")
+
 
 
 class NEOStorage:
