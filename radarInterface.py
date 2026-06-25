@@ -5,10 +5,12 @@ import requests
 # Imports the os module to help read the hidden NASA API Key, done for safekeeping the API key
 import os
 
+import itertools
+
 #Reads the contents of .env
 from dotenv import load_dotenv
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 #Imports the json request module to provide the json.dumps function to print the API data in a clean format
 import json
@@ -20,9 +22,9 @@ from modules import NearEarthObject, NEOStorage
 #Global Constants:
 currentDate = date.today() #Stores the current date in a YYYY-MM-DD date object
 
-first_NEO_DATA_CALL = NEOStorage()
+today_tomorrow_list = NEOStorage()
 
-second_NEO_DATA_CALL = NEOStorage()
+seven_day_list = NEOStorage()
 
 testList = NEOStorage()
 
@@ -70,10 +72,23 @@ def obtainAPIData():
     api_response = requests.get(url, params=feedQuery_params)
 
     #Converts the raw data to a parsable and extractable object 
-    asteroid_data = api_response.json()["near_earth_objects"]
+    neo_data = api_response.json().get("near_earth_objects")
 
-    ### LOGIC HERE TO PUT INTO FIRST DATA CALL LIST
+    ### LOGIC HERE TO PUT INTO TODAY/TMRW LIST
 
+    iterable_data = itertools.chain.from_iterable(neo_data.values())
+
+    for neo in iterable_data:
+        curNEO = NearEarthObject()
+        curNEO.fillObj(neo)
+        today_tomorrow_list.neoCollection.append(curNEO)
+    
+
+
+    for neo in today_tomorrow_list.neoCollection:
+        print(neo)
+    
+    
     #2ND API CALL
 
     feedQuery_params["start_date"] = currentDate + timedelta(days=3)
@@ -83,16 +98,58 @@ def obtainAPIData():
     api_response = requests.get(url, params=feedQuery_params)
 
     #Converts the raw data to a parsable and extractable object 
-    asteroid_data = api_response.json()["near_earth_objects"]
+    neo_data = api_response.json().get("near_earth_objects")
 
-    ### LOGIC HERE TO PUT INTO SECOND DATA CALL LIST 
+    ### LOGIC HERE TO CREATE 7-DAY LIST
+
+    seven_day_list.neoCollection = today_tomorrow_list.neoCollection.copy()
+
+    iterable_data = itertools.chain.from_iterable(neo_data.values())
+
+    for neo in iterable_data:
+        curNEO = NearEarthObject()
+        curNEO.fillObj(neo)
+        seven_day_list.neoCollection.append(curNEO)
 
 
-    #MERGE CALL LISTS TOGETHER 
+
+def filterAPIDataSingle(filter_date, neo_list):
+
+    #Obtain date before and after filter date.
+
+    prevDay = filter_date - timedelta(days=1)
+    nextDay = filter_date + timedelta(days=1)
+
+    filteredNEOs = []
+    for neo in neo_list:
+        neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
+        if(prevDay < neo_date < nextDay):
+            filteredNEOs.append(neo)
+            print(neo)
+    today_tomorrow_list.neoCollection = filteredNEOs
+
+def filterAPIDataWeek(neo_list):
+
+    endOfSevenDays = date.today() + timedelta(days=6)
+
+    filteredNEOs = []
+    for neo in neo_list:
+        neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
+        if(date.today <= neo_date <= endOfSevenDays):
+            filteredNEOs.append(neo)
+            print(neo)
+        seven_day_list.neoCollection = filteredNEOs
+
+        
+
+
+        
+
+
+
+
+
     
-
-
-
 
 
 
