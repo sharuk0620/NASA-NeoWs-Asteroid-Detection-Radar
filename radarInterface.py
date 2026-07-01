@@ -22,11 +22,13 @@ from modules import NearEarthObject, NEOStorage
 #Global Constants:
 currentDate = date.today() #Stores the current date in a YYYY-MM-DD date object
 
+tomorrowDate = currentDate + timedelta(days=1)
+
 today_tomorrow_list = NEOStorage()
 
 seven_day_list = NEOStorage()
 
-testList = NEOStorage()
+masterList = NEOStorage()
 
 
 
@@ -51,7 +53,7 @@ def askUserMainChoice():
         else:
             print("\nInvalid Choice! Please choose an option listed!\n")
 
-def obtainAPIData():
+def obtainInitialData():
 
     #Assigns api_key to hidden NASA API key
     api_key_nasa = os.getenv("NASA_API_KEY")
@@ -83,16 +85,14 @@ def obtainAPIData():
         curNEO.fillObj(neo)
         today_tomorrow_list.neoCollection.append(curNEO)
     
+    today_tomorrow_list.neoCollection.sort(key=lambda neo: (neo.localApproachDate, neo.militaryApproachTime))
 
 
-    for neo in today_tomorrow_list.neoCollection:
-        print(neo)
-    
     
     #2ND API CALL
 
     feedQuery_params["start_date"] = currentDate + timedelta(days=3)
-    feedQuery_params["end_date"] = currentDate + timedelta(days=7)
+    feedQuery_params["end_date"] = currentDate + timedelta(days=8)
 
     #Creates a response module object containing the raw data of the api call with the search params
     api_response = requests.get(url, params=feedQuery_params)
@@ -111,49 +111,65 @@ def obtainAPIData():
         curNEO.fillObj(neo)
         seven_day_list.neoCollection.append(curNEO)
 
+    seven_day_list.neoCollection.sort(key=lambda neo: (neo.localApproachDate, neo.militaryApproachTime))
 
 
 def filterAPIDataSingle(filter_date, neo_list):
 
-    #Obtain date before and after filter date.
-
-    prevDay = filter_date - timedelta(days=1)
-    nextDay = filter_date + timedelta(days=1)
 
     filteredNEOs = []
     for neo in neo_list:
         neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
-        if(prevDay < neo_date < nextDay):
+        if(neo_date == filter_date):
             filteredNEOs.append(neo)
-            print(neo)
-    today_tomorrow_list.neoCollection = filteredNEOs
+        today_tomorrow_list.neoCollection = filteredNEOs
+            
 
 def filterAPIDataWeek(neo_list):
 
-    endOfSevenDays = date.today() + timedelta(days=6)
+    endOfSevenDays = currentDate + timedelta(days=7)
 
     filteredNEOs = []
     for neo in neo_list:
         neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
-        if(date.today <= neo_date <= endOfSevenDays):
+        if(tomorrowDate <= neo_date <= endOfSevenDays):
             filteredNEOs.append(neo)
-            print(neo)
+            #print(neo)
         seven_day_list.neoCollection = filteredNEOs
 
+def scanToday():
+
+    initializeNEOList()
+
+    threatCounts = {
+        "critical": 0,
+        "severe": 0,
+        "elevated": 0,
+        "moderate": 0,
+        "low": 0,
+        "safe": 0
+    }
+
+    filterAPIDataSingle(currentDate, today_tomorrow_list.neoCollection)
+
+    index = 0
+    for neo in today_tomorrow_list.neoCollection:
+        masterList.neoCollection[index] = neo
         
+        curHazScore = neo.hazardousRating
 
+        evaluateHazRatings(curHazScore, threatCounts)
+        index += 1
 
-        
-
-
-
-
-
+    print("SCAN COMPLETE! RESULTS:")
+    print("-----------------------")
     
-
-
-
-
+    print(f"CRITICAL THREATS: {threatCounts["critical"]}")
+    print(f"SEVERE THREATS: {threatCounts["severe"]}")
+    print(f"ELEVATED THREATS: {threatCounts["elevated"]}")
+    print(f"MODERATE THREATS: {threatCounts["moderate"]}")
+    print(f"LOW THREATS: {threatCounts["low"]}")
+    print(f"SAFE NEOs : {threatCounts["safe"]}")
 
 
 
@@ -181,11 +197,8 @@ def askScanChoices():
 
 
 def initializeNEOList():
-    if(len(testList.neoCollection) != 0):
-        testList.neoCollection = []
-    for i in range(50):
-        testList.neoCollection.append(NearEarthObject())
-    #print(len(testList.neoCollection))
+    masterList.neoCollection = [None] * 50
+
 
 def evaluateHazRatings(hazScore, scoreList):
     if(hazScore >= 0.90):
@@ -202,62 +215,6 @@ def evaluateHazRatings(hazScore, scoreList):
         scoreList["safe"] += 1
 
 
-#Agenda: Evaluate close approaching 
-def scanNEOs(nearEarthData, choice):
-    #Attain Current Date
-
-
-    initializeNEOList()
-
-    threatCounts = {
-        "critical": 0,
-        "severe": 0,
-        "elevated": 0,
-        "moderate": 0,
-        "low": 0,
-        "safe": 0
-    }
-
-    index = 0
-
-    #Today and Tomorrow Scans
-    if(choice != 3):
-
-        if(choice == 1):
-            scanDate = currentDate
-        else:
-            scanDate = date.today() + timedelta(days=1)
-    
-        
-        for asteroid in nearEarthData["2029-04-13"]:
-            curNEO = testList.neoCollection[index]
-            curNEO.fillObj(asteroid)
-            print(curNEO)
-            curHazScore = curNEO.hazardousRating
-
-            evaluateHazRatings(curHazScore, threatCounts)
-            index += 1
-    else:
-        dateList = nearEarthData.values()
-
-        threatList = [neo for date in dateList for neo in date]
-
-        for neo_data in threatList:
-            curNEO = testList.neoCollection[index]
-            curNEO.fillObj(neo_data)
-            curHazScore = curNEO.hazardousRating
-
-            evaluateHazRatings(curHazScore, threatCounts)
-            index += 1
-                
-    print("SCAN COMPLETE! RESULTS:")
-    print("-----------------------")
-    print(f"CRITICAL THREATS: {threatCounts["critical"]}")
-    print(f"SEVERE THREATS: {threatCounts["severe"]}")
-    print(f"ELEVATED THREATS: {threatCounts["elevated"]}")
-    print(f"MODERATE THREATS: {threatCounts["moderate"]}")
-    print(f"LOW THREATS: {threatCounts["low"]}")
-    print(f"SAFE NEOs : {threatCounts["safe"]}")
 
 
 

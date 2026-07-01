@@ -69,9 +69,9 @@ load_dotenv()
 #radarInterface.scanNEOs(asteroid_data["near_earth_objects"], 1)
 
 
-radarInterface.obtainAPIData()
+radarInterface.obtainInitialData()
 
-
+radarInterface.scanToday()
 
 
 

@@ -16,6 +16,7 @@ class NearEarthObject:
         estApproachDistAU = 0.0
         rawApproachTime = ""
         localApproachDate = ""
+        militaryApproachTime = ""
         localApproachTime = ""
         relativeVelKmSeconds = 0.0
         hazardeousRating = 0.0
@@ -71,6 +72,8 @@ class NearEarthObject:
 
         #Creates a datetime object to contain the military time of the NEO
         localTime = datetime.strptime(dateParts[1], "%H:%M")
+
+        self.militaryApproachTime = dateParts[1]
 
         #Assigns the local approach date to the first dateParts element (Local Calendar Date)
         self.localApproachDate = dateParts[0]
