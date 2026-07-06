@@ -71,7 +71,7 @@ load_dotenv()
 
 radarInterface.obtainInitialData()
 
-radarInterface.scanToday()
+radarInterface.scanWeek()
 
 
 

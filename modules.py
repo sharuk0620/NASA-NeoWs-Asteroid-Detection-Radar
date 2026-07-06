@@ -171,6 +171,10 @@ class NearEarthObject:
 class NEOStorage:
     def __init__(self):
         self.neoCollection = []
+    
+    def initializeNEOList(self):
+        self.neoCollection = [None] * 50
+        self.neoCount = 0
 
     
 

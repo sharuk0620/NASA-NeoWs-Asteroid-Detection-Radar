@@ -111,7 +111,7 @@ def obtainInitialData():
         curNEO.fillObj(neo)
         seven_day_list.neoCollection.append(curNEO)
 
-    seven_day_list.neoCollection.sort(key=lambda neo: (neo.localApproachDate, neo.militaryApproachTime))
+    #seven_day_list.neoCollection.sort(key=lambda neo: (neo.localApproachDate, neo.militaryApproachTime))
 
 
 def filterAPIDataSingle(filter_date, neo_list):
@@ -139,7 +139,7 @@ def filterAPIDataWeek(neo_list):
 
 def scanToday():
 
-    initializeNEOList()
+    masterList.initializeNEOList()
 
     threatCounts = {
         "critical": 0,
@@ -160,16 +160,109 @@ def scanToday():
 
         evaluateHazRatings(curHazScore, threatCounts)
         index += 1
+        masterList.neoCount += 1
 
+    printResults(threatCounts)
+
+def scanTomorrow():
+
+    masterList.initializeNEOList()
+
+    threatCounts = {
+        "critical": 0,
+        "severe": 0,
+        "elevated": 0,
+        "moderate": 0,
+        "low": 0,
+        "safe": 0
+    }
+
+    filterAPIDataSingle(tomorrowDate, today_tomorrow_list.neoCollection)
+
+    index = 0
+    for neo in today_tomorrow_list.neoCollection:
+        masterList.neoCollection[index] = neo
+
+        curHazScore = neo.hazardousRating
+
+        evaluateHazRatings(curHazScore, threatCounts)
+
+        index += 1
+        masterList.neoCount += 1
+    
+    printResults(threatCounts)
+
+
+def scanWeek():
+
+    masterList.initializeNEOList()
+
+    threatCounts = {
+        "critical": 0,
+        "severe": 0,
+        "elevated": 0,
+        "moderate": 0,
+        "low": 0,
+        "safe": 0
+    }
+
+    filterAPIDataWeek(seven_day_list.neoCollection)
+
+    index = 0
+    for neo in seven_day_list.neoCollection:
+        masterList.neoCollection[index] = neo
+
+        curHazScore = neo.hazardousRating
+
+        evaluateHazRatings(curHazScore, threatCounts)
+
+        index += 1
+        masterList.neoCount += 1
+    
+    printResults(threatCounts)
+
+    masterList.neoCollection[:masterList.neoCount] = sorted(
+        masterList.neoCollection[:masterList.neoCount],
+        key=lambda neo: (neo.hazardousRating),
+        reverse=True
+    )
+
+    print("\n\n")
+    print("TOP 10 THREATS IN THE WEEK:")
+    print("---------------------------")
+
+
+    if(len(masterList.neoCollection[:masterList.neoCount]) < 10):
+        for neo in masterList.neoCollection[:masterList.neoCount]:
+            print(neo)
+    else:
+        for i in range(10):
+            print(masterList.neoCollection[i])
+
+
+
+
+
+
+    
+
+
+
+
+
+
+def printResults(hazCounts):
     print("SCAN COMPLETE! RESULTS:")
     print("-----------------------")
     
-    print(f"CRITICAL THREATS: {threatCounts["critical"]}")
-    print(f"SEVERE THREATS: {threatCounts["severe"]}")
-    print(f"ELEVATED THREATS: {threatCounts["elevated"]}")
-    print(f"MODERATE THREATS: {threatCounts["moderate"]}")
-    print(f"LOW THREATS: {threatCounts["low"]}")
-    print(f"SAFE NEOs : {threatCounts["safe"]}")
+    print(f"CRITICAL THREATS: {hazCounts["critical"]}")
+    print(f"SEVERE THREATS: {hazCounts["severe"]}")
+    print(f"ELEVATED THREATS: {hazCounts["elevated"]}")
+    print(f"MODERATE THREATS: {hazCounts["moderate"]}")
+    print(f"LOW THREATS: {hazCounts["low"]}")
+    print(f"SAFE NEOs : {hazCounts["safe"]}")
+
+
 
 
 
@@ -196,8 +289,6 @@ def askScanChoices():
             print("\nInvalid Choice! Please choose an option listed!\n")
 
 
-def initializeNEOList():
-    masterList.neoCollection = [None] * 50
 
 
 def evaluateHazRatings(hazScore, scoreList):
