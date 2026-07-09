@@ -176,6 +176,36 @@ class NEOStorage:
         self.neoCollection = [None] * 50
         self.neoCount = 0
 
+    def printList(self):
+
+        print("\nNAVAGATION MASTER LIST") 
+        print("----------------------")
+
+        neoList = [neo for neo in self.neoCollection if type(neo) is NearEarthObject]
+        neoList.sort(key=lambda neo: (neo.hazardousRating), reverse=True)
+        
+        totalItems = len(neoList)
+
+
+        totalRows = 10 if totalItems > 10 else totalItems
+
+        for i in range(totalRows):
+            row_strings = []
+
+            for space in range(0, 60, 10):
+                index = i + space
+
+                if index < totalItems:
+                    curNeo = neoList[index]
+                    cell_text = f"{index+1:2}. [{curNeo.name}] {curNeo.get_NEO_classification()}"
+                    row_strings.append(f"{cell_text:42}")
+                else:
+                    row_strings.append(" " * 42)
+        
+            print("".join(row_strings))
+
+
+
     
 
 

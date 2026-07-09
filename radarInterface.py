@@ -43,15 +43,6 @@ def askUserMainChoice():
     print("[2] BROWSE ASTEROIDS")
     print("[3] TERMINATE RADAR\n\n")
     
-    while True:
-        
-        userChoice = input("Please enter the appropriate index corresponding to your choice: ")
-
-        if userChoice in ["1", "2", "3"]:
-            print(" ")
-            break
-        else:
-            print("\nInvalid Choice! Please choose an option listed!\n")
 
 def obtainInitialData():
 
@@ -164,6 +155,8 @@ def scanToday():
 
     printResults(threatCounts)
 
+    today_tomorrow_list.printList()
+
 def scanTomorrow():
 
     masterList.initializeNEOList()
@@ -191,6 +184,8 @@ def scanTomorrow():
         masterList.neoCount += 1
     
     printResults(threatCounts)
+
+    today_tomorrow_list.printList()
 
 
 def scanWeek():
@@ -228,16 +223,7 @@ def scanWeek():
     )
 
     print("\n\n")
-    print("TOP 10 THREATS IN THE WEEK:")
-    print("---------------------------")
-
-
-    if(len(masterList.neoCollection[:masterList.neoCount]) < 10):
-        for neo in masterList.neoCollection[:masterList.neoCount]:
-            print(neo)
-    else:
-        for i in range(10):
-            print(masterList.neoCollection[i])
+    seven_day_list.printList()
 
 
 
