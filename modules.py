@@ -198,9 +198,9 @@ class NEOStorage:
                 if index < totalItems:
                     curNeo = neoList[index]
                     cell_text = f"{index+1:2}. [{curNeo.name}] {curNeo.get_NEO_classification()}"
-                    row_strings.append(f"{cell_text:42}")
+                    row_strings.append(f"{cell_text:37}")
                 else:
-                    row_strings.append(" " * 42)
+                    row_strings.append(" " * 37)
         
             print("".join(row_strings))
 

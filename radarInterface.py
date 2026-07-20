@@ -5,6 +5,10 @@ import requests
 # Imports the os module to help read the hidden NASA API Key, done for safekeeping the API key
 import os
 
+import sys
+
+import subprocess
+
 import itertools
 
 #Reads the contents of .env
@@ -14,6 +18,8 @@ from datetime import date, datetime, timedelta
 
 #Imports the json request module to provide the json.dumps function to print the API data in a clean format
 import json
+
+import time
 
 #Imports modules
 from modules import NearEarthObject, NEOStorage
@@ -108,25 +114,27 @@ def obtainInitialData():
 def filterAPIDataSingle(filter_date, neo_list):
 
 
-    filteredNEOs = []
+    index = 0
     for neo in neo_list:
         neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
         if(neo_date == filter_date):
-            filteredNEOs.append(neo)
-        today_tomorrow_list.neoCollection = filteredNEOs
+            masterList.neoCollection[index] = neo
+            masterList.neoCount += 1
+            index += 1
             
 
 def filterAPIDataWeek(neo_list):
 
     endOfSevenDays = currentDate + timedelta(days=7)
 
-    filteredNEOs = []
+    index = 0
     for neo in neo_list:
         neo_date =  datetime.strptime(neo.localApproachDate, "%Y-%m-%d").date()
         if(tomorrowDate <= neo_date <= endOfSevenDays):
-            filteredNEOs.append(neo)
-            #print(neo)
-        seven_day_list.neoCollection = filteredNEOs
+            masterList.neoCollection[index] = neo
+            masterList.neoCount += 1
+            index += 1
+        
 
 def scanToday():
 
@@ -144,18 +152,15 @@ def scanToday():
     filterAPIDataSingle(currentDate, today_tomorrow_list.neoCollection)
 
     index = 0
-    for neo in today_tomorrow_list.neoCollection:
-        masterList.neoCollection[index] = neo
+    for neo in masterList.neoCollection:
         
-        curHazScore = neo.hazardousRating
+        if(type(neo) is NearEarthObject):
+            curHazScore = neo.hazardousRating
 
-        evaluateHazRatings(curHazScore, threatCounts)
-        index += 1
-        masterList.neoCount += 1
+            evaluateHazRatings(curHazScore, threatCounts)
 
     printResults(threatCounts)
 
-    today_tomorrow_list.printList()
 
 def scanTomorrow():
 
@@ -172,20 +177,15 @@ def scanTomorrow():
 
     filterAPIDataSingle(tomorrowDate, today_tomorrow_list.neoCollection)
 
-    index = 0
-    for neo in today_tomorrow_list.neoCollection:
-        masterList.neoCollection[index] = neo
+    for neo in masterList.neoCollection:
 
-        curHazScore = neo.hazardousRating
+        if(type(neo) is NearEarthObject):
+            curHazScore = neo.hazardousRating
 
-        evaluateHazRatings(curHazScore, threatCounts)
+            evaluateHazRatings(curHazScore, threatCounts)
 
-        index += 1
-        masterList.neoCount += 1
     
     printResults(threatCounts)
-
-    today_tomorrow_list.printList()
 
 
 def scanWeek():
@@ -203,16 +203,13 @@ def scanWeek():
 
     filterAPIDataWeek(seven_day_list.neoCollection)
 
-    index = 0
+    
+
     for neo in seven_day_list.neoCollection:
-        masterList.neoCollection[index] = neo
 
         curHazScore = neo.hazardousRating
 
         evaluateHazRatings(curHazScore, threatCounts)
-
-        index += 1
-        masterList.neoCount += 1
     
     printResults(threatCounts)
 
@@ -222,10 +219,58 @@ def scanWeek():
         reverse=True
     )
 
-    print("\n\n")
-    seven_day_list.printList()
+    masterList.neoCollection = masterList.neoCollection[:10]
+    masterList.neoCount = 10
+
+    print("\n\nTOP 10 HAZARDS IN THIS WEEK: ")
+    print("-----------------------------")
+
+    masterList.printList()
 
 
+
+
+def browse(choice):
+
+    clearInterface()
+
+    if choice == "today" or "tomorrow":
+        today_tomorrow_list.printList()
+
+        while True:
+            neoChoice = input("\n Enter THE INDEX OF THE NEO TO BROWSE ITS DATA: ")
+
+            if 1 <= neoChoice <= len(today_tomorrow_list.neoCollection):
+                clearInterface()
+                print(today_tomorrow_list.neoCollection[neoChoice - 1])
+            else:
+                print("INVALID CHOICE! PLEASE CHOOSE A VALID NEO TO BROWSE!")
+                time.sleep(2.0)
+            
+
+
+    else:
+        seven_day_list.printList()
+
+def clearInterface():
+
+    if os.name == "nt":
+        subprocess.run(['cls'], shell=True)
+    else:
+        subprocess.run(['clear'])
+
+def clearInput():
+
+    sys.stdout.write("\x1b[1A\x1b[2K")
+    sys.stdout.flush()
+
+
+    
+
+
+
+    
+    
 
 
 
@@ -258,21 +303,49 @@ def printResults(hazCounts):
 def askScanChoices():
     #Agenda: Lay Out Options for user to choose on scanning asteroids 
     
-    print("SCAN FOR POTENTIALLY HAZARDEOUS ASTEROIDS:\n"
+    print("SCAN FOR POTENTIALLY HAZARDEOUS NEOs:\n"
           "-----------------------------------------------------------------")
     print("[a] SCAN TODAY")
     print("[b] SCAN TOMORROW")
-    print("[c] DISPLAY TOP 10 HAZARDS IN THE NEXT 7 DAYS\n\n")
+    print("[c] DISPLAY TOP 10 HAZARDS IN THE NEXT 7 DAYS")
+    print("[d] GO BACK TO MAIN MENU \n\n")
 
-    while True:
+def askBrowseChoices():
 
-        userChoice = input("Please enter the appropriate index corresponding to your choice: ")
+    print("BROWSE NEOs:\n"
+          "-----------------------------------------------------------------")
+    print("[a] BROWSE TODAY'S NEOs")
+    print("[b] BROWSE TOMORROW'S NEOs")
+    print("[c] BROWSE IN THE NEXT 7 DAYS")
+    print("[d] GO BACK TO MAIN MENU\n\n")
 
-        if userChoice in ["a", "b", "c"]:
-            print(" ")
-            break
-        else:
-            print("\nInvalid Choice! Please choose an option listed!\n")
+def neoBrowseChoices():
+
+    print("\nOPTIONS:")
+    print("----------------")
+    print("[1] BROWSE SCANNED NEOs")
+    print("[2] BACK TO MAIN MENU")
+
+def postBrowseChoices():
+
+    print("\nOPTIONS:")
+    print("----------------")
+    print("[1] BACK TO NEO LIST")
+    print("[2] BACK TO MAIN MENU")
+
+def top10Choices():
+
+    print("\nOPTIONS:")
+    print("----------------")
+    print("[#] BROWSE NEO AT SPECIFIED INDEX")
+    print("[exit] BACK TO MAIN MENU")
+
+
+
+
+
+
+
 
 
 
